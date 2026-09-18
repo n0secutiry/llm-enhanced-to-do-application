@@ -1,7 +1,7 @@
 [project]
 name = "llm-enhanced-to-do-application"
 version = "0.1.0"
-description = "Add your description here"
+description = "none"
 readme = "README.md"
 authors = [
     { name = "n0secutiry" }
@@ -12,7 +12,6 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic-settings>=2.15.0",
     "pymongo>=4.18.1",
-    "pytest>=9.1.1",
     "uvicorn>=0.53.0",
 ]
 
@@ -25,9 +24,23 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.8",
 ]
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
