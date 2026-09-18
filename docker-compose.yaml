@@ -2,6 +2,10 @@ services:
   mongodb_services:
     image: mongo
     restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 27017:27017
     healthcheck:
       test: 
         - "CMD"
@@ -11,7 +15,7 @@ services:
         - "--password"
         - ${MONGO_ROOT_PASSWORD}
         - "--authenticationDatabase"
-        - ${MONGO_ROOT_USER}
+        - "admin"
         - "--eval"
         - "db.adminCommand('ping').ok"
         - "--quiet"
@@ -28,8 +32,14 @@ services:
     restart: always
     ports:
       - 8081:8081
+    depends_on:
+      - mongodb_services
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb_services:27017/
       ME_CONFIG_BASICAUTH_ENABLED: true
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
+
+
+volumes:
+  mongo_data:
