@@ -37,7 +37,7 @@ line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["E", "F", "ASYNC", "I"]
 ignore = ["E501"]
 
 [tool.ruff.format]

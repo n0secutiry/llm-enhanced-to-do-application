@@ -1,4 +1,12 @@
 services:
+  api:
+    build: .
+    container_name: api-container
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    restart: always
   mongodb_services:
     image: mongo
     restart: always
