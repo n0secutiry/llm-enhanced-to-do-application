@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 
 from app.config import settings
 from app.database.mongo_db import get_mongo_db, running_mongo_db
+from app.v1.todo.routers import router as todo_router
 
 
 @asynccontextmanager
@@ -14,7 +15,6 @@ async def lifespan(app: FastAPI):
     finally:
         await mongo_client.close()
         print("Connection to mongo close")
-        
 
 
 if settings.ENV == "dev":
@@ -33,3 +33,6 @@ async def mongo_health_check(mongo_db=Depends(get_mongo_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Mongo database failed",
         )
+
+
+app.include_router(todo_router)
