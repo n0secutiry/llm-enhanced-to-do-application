@@ -1,7 +1,8 @@
-from fastapi import Request
+from fastapi import Depends, Request
 from pymongo import AsyncMongoClient
 
 from app.config import settings
+from app.v1.todo.repository import TodoRepository
 
 ASYNC_MONGO_URI = (
     f"mongodb://{settings.MONGO_ROOT_USER}:{settings.MONGO_ROOT_PASSWORD}"
@@ -24,3 +25,8 @@ async def running_mongo_db(app):
 
 async def get_mongo_db(request: Request):
     return request.app.state.mongo_db
+
+
+async def get_todo_repository(db=Depends(get_mongo_db)):
+    collection = db["todos"]
+    return TodoRepository(collection)
