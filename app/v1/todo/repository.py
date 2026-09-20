@@ -15,6 +15,8 @@ class TodoRepository:
     async def get_by_id(self, id):
         try:
             result = await self.collection.find_one({"_id": ObjectId(id)})
+            if not result:
+                return None
             return TodoModel.model_validate(result)
         except InvalidId:
             return None

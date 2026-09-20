@@ -5,7 +5,9 @@ from typing import Annotated
 from bson import ObjectId
 from pydantic import BaseModel, BeforeValidator, Field
 
-PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, ObjectId) else v)]
+PyObjectId = Annotated[
+    str, BeforeValidator(lambda v: str(v) if isinstance(v, ObjectId) else v)
+]
 
 
 class StatusType(StrEnum):
@@ -23,7 +25,7 @@ class TitleSourceType(StrEnum):
 
 class TodoModel(BaseModel):
     id: PyObjectId = Field(alias="_id")
-    title: str = Field(min_length=2, max_length=100)                      
+    title: str = Field(min_length=2, max_length=100)
     title_source: TitleSourceType
     content: str
     status: StatusType

@@ -14,7 +14,6 @@ async def lifespan(app: FastAPI):
     finally:
         await mongo_client.close()
         print("Connection to mongo close")
-        
 
 
 if settings.ENV == "dev":
