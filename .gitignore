@@ -219,3 +219,4 @@ __marimo__/
 instruct.md
 repl.py
 .vscode/
+logs/

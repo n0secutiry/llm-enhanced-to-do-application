@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     MONGO_PORT_DB: int
     MONGO_TIMEOUT_SELECTION_SERVER_MS: int = 5000
     MONGO_TIMEOUT_CONNECT_MS: int = 3000
+    EXCLUDE_PATHS: set = {"/docs", "/redoc", "/openapi.json"}
 
     model_config = SettingsConfigDict(
         extra="ignore", env_file=".env", env_ignore_empty=True
