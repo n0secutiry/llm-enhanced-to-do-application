@@ -1,0 +1,57 @@
+services:
+  api:
+    build: .
+    container_name: api-container
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - logs_api_data:/logs
+  mongodb_services:
+    image: mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: 
+        - "CMD"
+        - mongosh
+        - "--username"
+        - ${MONGO_ROOT_USER}
+        - "--password"
+        - ${MONGO_ROOT_PASSWORD}
+        - "--authenticationDatabase"
+        - "admin"
+        - "--eval"
+        - "db.adminCommand('ping').ok"
+        - "--quiet"
+      interval: 45s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    depends_on:
+      mongodb_services:
+        condition: service_healthy
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb_services:27017/
+      ME_CONFIG_BASICAUTH_ENABLED: true
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
+
+
+volumes:
+  mongo_data:
+  logs_api_data:
