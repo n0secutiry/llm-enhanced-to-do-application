@@ -1,11 +1,9 @@
 from fastapi import Depends, Request
+from loguru import logger
 from pymongo import AsyncMongoClient
 
 from app.config import settings
-from app.logging_config import setup_logger
 from app.v1.todo.repository import TodoRepository
-
-logger = setup_logger(__name__)
 
 ASYNC_MONGO_URI = (
     f"mongodb://{settings.MONGO_ROOT_USER}:{settings.MONGO_ROOT_PASSWORD}"

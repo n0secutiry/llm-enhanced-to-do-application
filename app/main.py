@@ -1,14 +1,14 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from loguru import logger
 
 from app.config import settings
 from app.database.mongo_db import get_mongo_db, running_mongo_db
-from app.logging_config import setup_logger
-from app.middleware.bodylogginmiddleware import BodyLoggingMiddleware
+from app.middleware.loggin_middleware import LoggingMiddleware
 from app.v1.todo.routers import router as todo_router
 
-logger = setup_logger(__name__)
+logger.add("/logs/app.log")
 
 
 @asynccontextmanager
@@ -40,8 +40,6 @@ async def mongo_health_check(mongo_db=Depends(get_mongo_db)):
         )
 
 
-app.add_middleware(
-    BodyLoggingMiddleware, logger=logger, exclude_paths=settings.EXCLUDE_PATHS
-)
+app.add_middleware(LoggingMiddleware)
 
 app.include_router(todo_router)
