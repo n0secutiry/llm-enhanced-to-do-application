@@ -1,4 +1,5 @@
 from fastapi import Depends, Request
+from loguru import logger
 from pymongo import AsyncMongoClient
 
 from app.config import settings
@@ -19,7 +20,7 @@ async def running_mongo_db(app):
     )
     app.state.mongo_db = client[settings.MONGO_NAME_DB]
     await client.admin.command("ping")
-    print("Succesful connect to mongo")
+    logger.info("Succesful connect to mongo")
     return client
 
 
