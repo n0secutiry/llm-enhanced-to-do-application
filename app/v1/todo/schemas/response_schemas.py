@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,3 +19,10 @@ class TodoResponse(BaseModel):
     updated_at: datetime.datetime
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class TodoListResponse(BaseModel):
+    items: List[TodoResponse]
+    total: int
+    limit: int
+    offset: int
