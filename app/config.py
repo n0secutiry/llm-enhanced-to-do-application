@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     MONGO_TIMEOUT_CONNECT_MS: int = 3000
     EXCLUDE_PATHS: set = {"/docs", "/redoc", "/openapi.json"}
 
+    OLLAMA_URL: str
+    OLLAMA_MODEL: str
+
     model_config = SettingsConfigDict(
         extra="ignore", env_file=".env", env_ignore_empty=True
     )
