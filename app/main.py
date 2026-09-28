@@ -6,6 +6,8 @@ from loguru import logger
 from app.config import settings
 from app.database.mongo_db import get_mongo_db, running_mongo_db
 from app.middleware.loggin_middleware import LoggingMiddleware
+from app.v1.llm.ollama import running_ollama
+from app.v1.llm.routers import router as llm_router
 from app.v1.todo.routers import router as todo_router
 
 logger.add("/logs/app.log")
@@ -13,12 +15,17 @@ logger.add("/logs/app.log")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ollama_client = await running_ollama(app)
     mongo_client = await running_mongo_db(app)
     try:
         yield
     finally:
         await mongo_client.close()
         logger.info("Connection to mongodb close")
+
+        if ollama_client:
+            await ollama_client.close()
+            logger.info("Connection to Ollama close")
 
 
 if settings.ENV == "dev":
@@ -43,3 +50,4 @@ async def mongo_health_check(mongo_db=Depends(get_mongo_db)):
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(todo_router)
+app.include_router(llm_router)
