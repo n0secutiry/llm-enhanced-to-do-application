@@ -1,10 +1,11 @@
 import asyncio
 
 import ollama
-from fastapi import Request
+from fastapi import Depends, Request
 from loguru import logger
 
 from app.config import settings
+from app.v1.llm.service import LLMService
 
 
 async def running_ollama(app):
@@ -28,3 +29,7 @@ async def running_ollama(app):
 
 async def get_ollama_client(request: Request):
     return getattr(request.app.state, "ollama_client", None)
+
+
+async def get_llm_service(ollama=Depends(get_ollama_client)):
+    return LLMService(ollama)

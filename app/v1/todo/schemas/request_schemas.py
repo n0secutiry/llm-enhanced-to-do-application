@@ -6,7 +6,7 @@ from app.v1.todo.models import StatusType
 
 
 class TodoCreateRequest(BaseModel):
-    title: str = Field(min_length=2, max_length=100)
+    title: str | None = Field(min_length=2, max_length=100, default=None)
     content: str = Field(min_length=1)
     status: StatusType = StatusType.open
     tags: list[str] = []
