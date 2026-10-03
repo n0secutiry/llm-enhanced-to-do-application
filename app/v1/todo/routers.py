@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.database.mongo_db import get_todo_repository
 from app.v1.todo.repository import TodoRepository
@@ -8,6 +8,7 @@ from app.v1.todo.schemas.request_schemas import (
     TodoUpdateRequest,
 )
 from app.v1.todo.schemas.response_schemas import TodoListResponse, TodoResponse
+from app.v1.todo.service import TodoService, get_todo_service
 
 router = APIRouter(prefix="/api/v1/todos", tags=["Todos"])
 
@@ -19,10 +20,18 @@ router = APIRouter(prefix="/api/v1/todos", tags=["Todos"])
     description="Add new notion",
 )
 async def create_new_todo(
-    data: TodoCreateRequest, repo: TodoRepository = Depends(get_todo_repository)
+    data: TodoCreateRequest,
+    background_tasks: BackgroundTasks,
+    service: TodoService = Depends(get_todo_service)
 ):
-    result = await repo.create(data)
-    return result
+    todo = await service.create(data)
+    if data.title is None:
+        background_tasks.add_task(
+            service.generate_llm_title,
+            todo.id,
+            data.content
+        )
+    return todo
 
 
 @router.get(
@@ -67,9 +76,9 @@ async def get_todo_items(
 async def update_todo(
     todo_id: str,
     data: TodoUpdateRequest,
-    repo: TodoRepository = Depends(get_todo_repository),
+    service: TodoService = Depends(get_todo_service),
 ):
-    result = await repo.update(todo_id, data)
+    result = await service.update(todo_id, data)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Not found todo"
