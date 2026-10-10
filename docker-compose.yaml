@@ -3,54 +3,65 @@ services:
     build: .
     container_name: api-container
     ports:
-      - 8000:8000
+      - 127.0.0.1:8000:8000
     env_file:
       - .env
-    restart: always
+    restart: unless-stopped
+    depends_on:
+      mongodb_services:
+        condition: service_healthy
     volumes:
       - logs_api_data:/logs
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
   mongodb_services:
-    image: mongo
-    restart: always
+    image: mongo:8
+    restart: unless-stopped
     volumes:
       - mongo_data:/data/db
     ports:
-      - 27017:27017
+      - 127.0.0.1:27017:27017
     healthcheck:
-      test: 
+      # `ping` needs no authentication, so no password lands in the process list.
+      test:
         - "CMD"
         - mongosh
-        - "--username"
-        - ${MONGO_ROOT_USER}
-        - "--password"
-        - ${MONGO_ROOT_PASSWORD}
-        - "--authenticationDatabase"
-        - "admin"
+        - "--quiet"
         - "--eval"
         - "db.adminCommand('ping').ok"
-        - "--quiet"
-      interval: 45s
-      timeout: 30s
+      interval: 15s
+      timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 20s
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
 
   mongo-express:
-    image: mongo-express
-    restart: always
+    image: mongo-express:1
+    restart: unless-stopped
+    # Optional database browser: `docker compose --profile tools up -d`
+    profiles:
+      - tools
     ports:
-      - 8081:8081
+      - 127.0.0.1:8081:8081
     depends_on:
       mongodb_services:
         condition: service_healthy
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb_services:27017/
-      ME_CONFIG_BASICAUTH_ENABLED: true
+      ME_CONFIG_BASICAUTH_ENABLED: "true"
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
-
 
 volumes:
   mongo_data:

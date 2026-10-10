@@ -92,6 +92,47 @@ class TodoRepository:
 
         return result.modified_count == 1
 
+    async def set_priority(self, id, score: float, signals: dict) -> TodoModel | None:
+        """System update: the client is never allowed to write these fields."""
+        try:
+            result = await self.collection.find_one_and_update(
+                {"_id": ObjectId(id), "deleted_at": None},
+                {
+                    "$set": {
+                        "priority_score": score,
+                        "priority_signals": signals,
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                },
+                return_document=ReturnDocument.AFTER,
+            )
+        except InvalidId:
+            return None
+
+        if not result:
+            return None
+
+        return TodoModel.model_validate(result)
+
+    async def count_open(self) -> int:
+        return await self.collection.count_documents(
+            {"deleted_at": None, "status": {"$in": ["open", "in_progress"]}}
+        )
+
+    async def get_next(self, limit: int) -> list[TodoModel]:
+        """Unfinished todos with the highest score — "what to work on now"."""
+        cursor = (
+            self.collection.find(
+                {"deleted_at": None, "status": {"$in": ["open", "in_progress"]}}
+            )
+            .sort("priority_score", -1)
+            .limit(limit)
+        )
+
+        raw_items = await cursor.to_list(length=limit)
+
+        return [TodoModel.model_validate(item) for item in raw_items]
+
     async def get_items(
         self, status, tag, priority_gte, limit, offset
     ) -> tuple[list[TodoModel], int]:

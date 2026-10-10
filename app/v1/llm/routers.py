@@ -1,8 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Internal endpoint used for prompt tuning.
+
+It is not part of the public todo API: it exists so a title prompt can be
+tried out without creating notes.
+"""
+
+from fastapi import APIRouter, Depends, status
 from loguru import logger
 
-from app.v1.llm.exception import LLMTimeoutError
-from app.v1.llm.ollama import get_ollama_client
+from app.rate_limit import limit_llm_calls
+from app.v1.llm.ollama import get_llm_service
 from app.v1.llm.schemas.request_schemas import LLMGenerateTitleRequest
 from app.v1.llm.schemas.response_schemas import LLMGeneratedTitleDataResponse
 from app.v1.llm.service import LLMService
@@ -14,22 +20,15 @@ router = APIRouter(prefix="/api/v1/llm", tags=["LLM"])
     "",
     response_model=LLMGeneratedTitleDataResponse,
     status_code=status.HTTP_201_CREATED,
-    description="Generate title for todo",
+    description="Generate a title from arbitrary text (prompt tuning helper)",
+    dependencies=[Depends(limit_llm_calls)],
 )
 async def make_title_todo(
     data: LLMGenerateTitleRequest,
-    ollama_client=Depends(get_ollama_client),
+    llm_service: LLMService = Depends(get_llm_service),
 ):
-    try:
-        client_repository = LLMService(ollama_client)
-        result = await client_repository.create_title(data.prompt)
-        return result
-    except LLMTimeoutError as err:
-        raise HTTPException(
-            detail=str(err), status_code=status.HTTP_504_GATEWAY_TIMEOUT
-        )
-    except Exception as err:
-        logger.error(err)
-        raise HTTPException(
-            detail="LLM failed", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
-        )
+    result = await llm_service.create_title(data.prompt)
+
+    logger.debug(f"Title generated from raw text: {result}")
+
+    return result

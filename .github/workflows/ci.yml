@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Ruff (lint)
+        run: uv run ruff check .
+
+      - name: Ruff (format check)
+        run: uv run ruff format --check .
+
+      - name: Mypy
+        run: uv run mypy
+
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: ci_user
+          MONGO_INITDB_ROOT_PASSWORD: ci_password
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Tests never reach Ollama (the LLM is faked), but settings require values.
+      ENV: dev
+      LOG_FILE: logs/app.log
+      MONGO_ROOT_USER: ci_user
+      MONGO_ROOT_PASSWORD: ci_password
+      MONGO_NAME_DB: llm-todo-db
+      MONGO_HOST_DB: localhost
+      MONGO_PORT_DB: 27017
+      OLLAMA_URL: http://localhost:11434
+      OLLAMA_MODEL: qwen2.5:1.5b
+      TEST_MONGO_HOST: localhost
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Pytest
+        run: uv run pytest -v
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t llm-todo-api .

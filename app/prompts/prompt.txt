@@ -9,13 +9,13 @@ Rules:
 - Return only JSON: {"title": "..."}
 
 Examples:
-Ukrainian: "Потрібно додати перевірку email при реєстрації"
+Text: "Потрібно додати перевірку email при реєстрації"
 → {"title": "Додати перевірку email"}
 
-Russian: "Нужно исправить ошибку при удалении заказа"
-→ {"title": "Исправить удаление заказа"}
+Text: "Треба подзвонити в клініку і записатися на огляд"
+→ {"title": "Записатися на огляд у клініку"}
 
-English: "We need to improve database query performance"
+Text: "We need to improve database query performance"
 → {"title": "Improve database query performance"}
 
 User text:
