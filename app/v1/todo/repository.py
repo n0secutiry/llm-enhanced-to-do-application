@@ -7,17 +7,16 @@ from bson.errors import InvalidId
 from pymongo import ReturnDocument
 
 from app.v1.todo.models import TodoModel
-from app.v1.todo.schemas.request_schemas import TodoCreateRequest, TodoUpdateRequest
 
 
 class TodoRepository:
     def __init__(self, collection):
         self.collection = collection
 
-    async def create(self, document: TodoCreateRequest):
-        user_data = document.model_dump()
+    async def create(self, document: dict):
+        user_data = dict(document)
+
         server_fields = {
-            "title_source": "user",
             "priority_score": 0.0,
             "priority_signals": None,
             "created_at": datetime.now(timezone.utc),
@@ -41,8 +40,25 @@ class TodoRepository:
         except InvalidId:
             return None
 
-    async def update(self, id, data: TodoUpdateRequest) -> TodoModel | None:
-        changes = data.model_dump(exclude_unset=True)
+    async def set_title(self, id, title: str, title_source: str) -> bool:
+        try:
+            result = await self.collection.update_one(
+                {"_id": ObjectId(id), "title_source": "fallback", "deleted_at": None},
+                {
+                    "$set": {
+                        "title": title,
+                        "title_source": title_source,
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                },
+            )
+        except InvalidId:
+            return False
+
+        return result.modified_count == 1
+
+    async def update(self, id, changes: dict) -> TodoModel | None:
+        changes = dict(changes)
 
         if not changes:
             return await self.get_by_id(id)
@@ -75,6 +91,47 @@ class TodoRepository:
             return False
 
         return result.modified_count == 1
+
+    async def set_priority(self, id, score: float, signals: dict) -> TodoModel | None:
+        """System update: the client is never allowed to write these fields."""
+        try:
+            result = await self.collection.find_one_and_update(
+                {"_id": ObjectId(id), "deleted_at": None},
+                {
+                    "$set": {
+                        "priority_score": score,
+                        "priority_signals": signals,
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                },
+                return_document=ReturnDocument.AFTER,
+            )
+        except InvalidId:
+            return None
+
+        if not result:
+            return None
+
+        return TodoModel.model_validate(result)
+
+    async def count_open(self) -> int:
+        return await self.collection.count_documents(
+            {"deleted_at": None, "status": {"$in": ["open", "in_progress"]}}
+        )
+
+    async def get_next(self, limit: int) -> list[TodoModel]:
+        """Unfinished todos with the highest score — "what to work on now"."""
+        cursor = (
+            self.collection.find(
+                {"deleted_at": None, "status": {"$in": ["open", "in_progress"]}}
+            )
+            .sort("priority_score", -1)
+            .limit(limit)
+        )
+
+        raw_items = await cursor.to_list(length=limit)
+
+        return [TodoModel.model_validate(item) for item in raw_items]
 
     async def get_items(
         self, status, tag, priority_gte, limit, offset

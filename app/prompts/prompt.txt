@@ -1,0 +1,24 @@
+Generate a short title for the user's text.
+
+Rules:
+- 3–8 words.
+- Use the same language as the user's text.
+- Do not translate.
+- Summarize the main action.
+- No quotes or explanations.
+- Return only JSON: {"title": "..."}
+
+Examples:
+Text: "Потрібно додати перевірку email при реєстрації"
+→ {"title": "Додати перевірку email"}
+
+Text: "Треба подзвонити в клініку і записатися на огляд"
+→ {"title": "Записатися на огляд у клініку"}
+
+Text: "We need to improve database query performance"
+→ {"title": "Improve database query performance"}
+
+User text:
+<<<
+{{ content }}
+>>>

@@ -1,0 +1,62 @@
+[
+  {
+    "content": "Production is down: the payment service returns 500 for every request and customers cannot pay",
+    "due_in_days": 0,
+    "tags": ["incident", "backend"],
+    "manual_rank": 1
+  },
+  {
+    "content": "Fix the migration script before tomorrow's release, the whole deploy is blocked until it works",
+    "due_in_days": 1,
+    "tags": ["release"],
+    "manual_rank": 2
+  },
+  {
+    "content": "Reply to the client's email about the contract, they are waiting since yesterday",
+    "due_in_days": 1,
+    "tags": ["communication"],
+    "manual_rank": 3
+  },
+  {
+    "content": "Review the pull request from a teammate, they cannot continue until it is merged",
+    "due_in_days": 2,
+    "tags": ["review"],
+    "manual_rank": 4
+  },
+  {
+    "content": "Renew the SSL certificate, it expires in three days",
+    "due_in_days": 3,
+    "tags": ["infra"],
+    "manual_rank": 5
+  },
+  {
+    "content": "Prepare slides for the sprint demo next week",
+    "due_in_days": 7,
+    "tags": ["meeting"],
+    "manual_rank": 6
+  },
+  {
+    "content": "Write unit tests for the notifications module",
+    "due_in_days": 10,
+    "tags": ["tests"],
+    "manual_rank": 7
+  },
+  {
+    "content": "Refactor the old reporting code, it is ugly but it works fine",
+    "due_in_days": null,
+    "tags": ["tech-debt"],
+    "manual_rank": 8
+  },
+  {
+    "content": "Read the article about MongoDB aggregation pipelines someone shared in chat",
+    "due_in_days": null,
+    "tags": ["learning"],
+    "manual_rank": 9
+  },
+  {
+    "content": "Clean up the desktop folder with old screenshots",
+    "due_in_days": null,
+    "tags": ["personal"],
+    "manual_rank": 10
+  }
+]
